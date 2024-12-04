@@ -16,7 +16,7 @@ async def main():
     logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(levelname)-8s %(filename)s'
                                                     '%(lineno)d %(name)s %(message)s')
 
-    bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(ParseMode.HTML))
+    bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
     dp.include_router(router)
 
