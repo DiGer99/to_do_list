@@ -8,6 +8,7 @@ from aiogram.fsm.state import default_state
 from fsm.fsm import (WaitScheduleFSM, WaitEditScheduleButton, WaitAddRowIntoSchedule, WaitAddSampleSchedule,
                      WaitAddToDoList, WaitAddOneAction)
 from keyboards.keyboards import create_inline_keyboard, create_reply_keyboard
+from services.services import check_dash_in_time
 
 
 router = Router()
@@ -118,7 +119,19 @@ async def process_add_row_into_schedule(message: Message, state: FSMContext):
     schedule: str = await rq.get_schedule(message.from_user.id)
     schedule += '\n' + message.text
     rows: list = schedule.split('\n')
-    rows.sort(key=lambda x: int(x.split(' ', 1)[0].replace(':', '')))
+    if await check_dash_in_time(rows=rows): # проверка что "-" находится в интервале времени или нет 
+        dashes = [] # если да, то создаем новый список, добавляем туда время с тире, сортируем по времени без тире и потом отдельно
+        # добавляем время с тире в rows
+        for i in rows:
+            if "-" in i:
+                dashes.append(rows.pop(rows.index(i))) # вынимаем в пустой список время с тире
+        rows.sort(key=lambda x: int(x.split(' ', 1)[0].replace(':', ''))) # сортируем время без тире
+        for i in dashes:
+            for j in rows:
+                if i.split("-", 1)[0] < j.split(" ", 1)[0]:
+                    rows.insert(rows.index(j), i) # вставляем время с тире перед временем без тире
+    else:
+        rows.sort(key=lambda x: int(x.split(' ', 1)[0].replace(':', '')))
     await rq.update_schedule(message.from_user.id, '\n'.join(rows))
     buttons = {f'schedule_{i.split(' ', 1)[0]}': f'{i.split(' ', 1)[0]} - {i.split(' ', 1)[1]}' for i in rows}
     await state.clear()

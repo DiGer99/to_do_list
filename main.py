@@ -7,6 +7,7 @@ import logging
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
+
 logger = logging.getLogger(__name__)
 
 
